@@ -1,5 +1,25 @@
 use wasm_bindgen::prelude::*;
 
+// #[wasm_bindgen]
+fn create_state(element: &str) -> Result<Box<dyn Fn(&str) -> ()>, &str> {
+  let window = web_sys::window().expect("Cannot create a state without window");
+  let document = window
+    .document()
+    .expect("Cannot create a state without document");
+  let maybe_html_element = document
+    .query_selector(element)
+    .expect("Element did not found!");
+  let html_element = match maybe_html_element {
+    Some(html) => html,
+    None => return Err("Html element"),
+  };
+
+  let set_state = Box::new(move |value: &str| {
+    html_element.set_inner_html(value);
+  });
+  return Ok(set_state);
+}
+
 #[wasm_bindgen]
 pub fn run() -> Result<(), JsValue> {
   let window = web_sys::window().expect("no global window found");
@@ -13,6 +33,8 @@ pub fn run() -> Result<(), JsValue> {
     }
     None => return Err(JsValue::UNDEFINED),
   }
+  let set_count = create_state("root").expect("Not found");
+  set_count("<h1>Hello World!!</h1>");
   return Ok(());
 }
 
